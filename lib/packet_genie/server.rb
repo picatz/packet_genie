@@ -32,7 +32,7 @@ module PacketGenie
     end
 
     post '/config' do
-      halt 404 unless body = read_json(request.body.read)
+      halt 400 unless body = read_json(request.body.read)
       ["interface", "snaplen", "promisc", "timeout"].each do |opt|
         settings.config[opt.to_sym] = body[opt] if body.keys.include?(opt)
       end
