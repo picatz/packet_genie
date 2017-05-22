@@ -1,0 +1,70 @@
+#!/usr/bin/env ruby
+
+require 'packet_genie'
+require 'colorize'
+require 'trollop'
+
+application_name = 'Packet Genine Client'
+
+# Default to a help menu if no argument is given.
+ARGV[0] = '-h' if ARGV.empty?
+
+# Option parsing.
+opts = Trollop::options do
+  banner  "#{application_name}".red
+  version "#{application_name} CLI 1.0.0 (c) 2017 Kent 'picat' Gruber"
+  opt :ip,        "Packet Genie server IP", type: :string,   default: "localhost"
+  opt :port,      "port to connect on",     type: :int,      default: 4567
+  opt :ssl,       "enable SSL support",     type: :bool,     default: false
+  opt :check,     "check connection",       type: :bool,     default: false
+  opt :Config,    "check configuration",    type: :bool,     default: false
+  opt :Interface, "change interface",       type: :string
+  opt :Snaplen,   "change snaplen",         type: :int     
+  opt :Promisc,   "promisc mode",           type: :boolean, default: false 
+  opt :Timeout,   "timeout value",          type: :int     
+  opt :run,       "start packet capture",   type: :boolean, default: false     
+  opt :Verbose, "verbose output option",    type: :bool,    default: false
+end
+
+base = if opts[:ssl]
+         "https://"
+       else
+         "http://"
+       end
+
+client = PacketGenie.client.new(uri: "#{base}#{opts[:ip]}:#{opts[:port]}")
+
+if opts[:check]
+  begin
+    puts "[#{"+".green}] Able to connect to: #{client.uri}" if client.config
+  rescue
+    puts "[#{"-".red}] Unable to connect to: #{client.uri}"
+  end
+end
+
+if opts[:Config]
+  begin
+    client.config.each do |key, value|
+      puts "#{key.rjust(9)}: #{value}"
+    end
+  rescue
+    puts "[#{"-".red}] Unable to connect to: #{client.uri}"
+  end 
+end
+
+if opts[:Interface] || opts[:Snaplen] || opts[:Timeout] || opts[:Promisc]
+  config = {}
+  [:Interface, :Snaplen, :Timeout, :Promisc].each do |option|
+    config[option.to_s.downcase.to_sym] = opts[option] if opts[option]
+  end
+  resp = client.set_config(config: config)
+  resp.each do |key, value|
+    puts "#{key.rjust(9)}: #{value}"
+  end
+end
+
+if opts[:run]
+  client.packets do |packet|
+    puts packet
+  end
+end

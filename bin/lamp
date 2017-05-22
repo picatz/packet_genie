@@ -1,11 +1,10 @@
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 #!/usr/bin/env ruby
 
 require 'packet_genie'
 require 'colorize'
 require 'pry'
 
-prompt_name = ">>".red
+prompt_name = "magic lamp ".bold + ">>".red
 
 Pry.config.prompt = [
   proc { |target_self, nest_level, pry|
