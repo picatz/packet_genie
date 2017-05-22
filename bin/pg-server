@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'packet_genie'
+require 'colorize'
+require 'trollop'
+
+application_name = 'Packet Genine Server'
+
+# Default to a help menu if no argument is given.
+ARGV[0] = '-h' if ARGV.empty?
+
+# Option parsing.
+opts = Trollop::options do
+  banner  "#{application_name}".red
+  version "#{application_name} CLI 1.0.0 (c) 2017 Kent 'picat' Gruber"
+  opt :ip,      "IP address to bind to", type: :string, default: "localhost"
+  opt :port,    "port to listen on",     type: :int,    default: 4567
+  opt :ssl,     "enable SSL support",    type: :bool,   default: false
+  opt :cert,    "SSL cert chain file",   type: :string
+  opt :key,     "SSL private key file",  type: :string
+  opt :Verbose, "verbose output option", type: :bool,   default: false
+  opt :run,     "start the server",      type: :bool,   default: false
+end
+
+if opts[:ssl] and opts[:run]
+  [:cert, :key].each do |option|
+    raise "Unable to read file for #{option}: #{opts[option]}" unless File.readable?(opts[option])
+  end
+  PacketGenie.server.run!(bind: opts[:ip], port: opts[:port], cert_chain: opts[:cert], private_key: opts[:key])
+elsif opts[:run]
+  PacketGenie.server.run!(bind: opts[:ip], port: opts[:port], ssl: false)
+end
