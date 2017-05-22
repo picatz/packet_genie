@@ -20,55 +20,57 @@ module PacketGenie
                  end
     end
 
-    def config(json: true)
+    def config(parsed: true)
       @response = Net::HTTP.get_response(uri + "/config")
-      if json
+      if parsed
         JSON.parse(@response.body)
       else
         @response
       end
     end
 
-    def promisc(on: true, off: !on)
+    def set_config(config:, parsed: true)
+      old_path  = @uri.path
+      @uri.path = CONFIG 
       @request = Net::HTTP::Post.new(@uri)
-      if off
-        @request.body = JSON.dump({"promisc" => false})
-      elsif on
-        @request.body = JSON.dump({"promisc" => true})
+      @request.body = JSON.dump(config)
+      @response = Net::HTTP.start(@uri.hostname, @uri.port, @options) { |http| http.request(@request) }
+      if parsed
+        JSON.parse(@response.body)
+      else
+        @response
       end
-      get_response(path: CONFIG, request: @request)
-    end
-
-    def snaplen(value)
-      @request = Net::HTTP::Post.new(@uri)
-      @request.body = JSON.dump({"snaplen" => value.to_i})
-      get_response(path: CONFIG, request: @request)
-    end
-
-    def timeout(value)
-      @request = Net::HTTP::Post.new(@uri)
-      @request.body = JSON.dump({"timeout" => value.to_i})
-      get_response(path: CONFIG, request: @request)
-    end 
-
-    def interface(name)
-      @request = Net::HTTP::Post.new(@uri)
-      @request.body = JSON.dump({"interface" => name})
-      get_response(path: CONFIG, request: @request)
     end
 
     def send_request(path:, request: @request)
-      @request = Net::HTTP::Post.new(@uri)
+      old_path  = @uri.path
       @uri.path = path
       Net::HTTP.start(@uri.hostname, @uri.port, @options) { |http| http.request(request) }
-    end
-
-    def get_response(path:, request: @request)
-      @response = send_request(path: path, request: request)
+      @uri.path = old_path
     end
 
     def response?
       !!@response
+    end
+
+    def packets
+      old_path  = @uri.path
+      @uri.path = "/packets" 
+      @request = Net::HTTP::Get.new(@uri)
+      begin
+        Net::HTTP.start(@uri.hostname, @uri.port, @options) do |http| 
+          http.request(@request) do |resp|
+            resp.read_body do |chunk|
+              chunk.split.each do |packet|
+                yield packet
+              end
+            end
+          end
+        end
+      ensure
+        @uri.path = old_path
+        true
+      end
     end
 
   end
