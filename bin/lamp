@@ -1,0 +1,20 @@
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+#!/usr/bin/env ruby
+
+require 'packet_genie'
+require 'colorize'
+require 'pry'
+
+prompt_name = ">>".red
+
+Pry.config.prompt = [
+  proc { |target_self, nest_level, pry|
+    "#{prompt_name}#{":#{nest_level}" unless nest_level.zero?} "
+  },
+  proc { |target_self, nest_level, pry|
+    "#{prompt_name}(#{Pry.view_clip(target_self)})#{":#{nest_level}" unless nest_level.zero?}* "
+  }
+]
+Pry.config.prompt_name = prompt_name
+
+Pry.start
