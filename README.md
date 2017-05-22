@@ -42,7 +42,7 @@ Don't want to mess around with CURL? Why not use the Packet Genie client?
 ```ruby
 require 'packet_genie'
 
-client = PacketGenie.client.new(uri: "http://locahost:4567")
+client = PacketGenie.client.new(uri: "http://localhost:4567")
 
 client.packets do |packet|
   puts packet # do something with json
