@@ -10,11 +10,11 @@ Have you ever wanted to stream live packet captures on multiple hosts? Ever just
 
 ### 🚧  Development Notice
 
-This gem is still under development.
+Currently, a pre-release gem is avaiable to install with the --pre flag to help with early testing.
 
 ## Installation
 
-    $ gem install packet_genie
+    $ gem install packet_genie --pre
 
 ## Usage
 
