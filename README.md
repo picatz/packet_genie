@@ -23,6 +23,8 @@ This gem is still under development.
 The Packet Genie server will stream packets on the host running the Packet Genie server. This allows you to perform a live, remote packet capture over HTTP(s).
 
 ```ruby
+require 'packet_genie'
+
 # Start server without SSL
 PacketGenie.server.run!(ssl: false)
 ```
@@ -31,6 +33,20 @@ Then, easily start a packet capture with CURL ( for example ):
 
 ```shell
 $ curl localhost:4567/packets
+```
+
+### Client
+
+Don't want to mess around with CURL? Why not use the Packet Genie client?
+
+```ruby
+require 'packet_genie'
+
+client = PacketGenie.client.new(uri: "http://locahost:4567")
+
+client.packets do |packet|
+  puts packet # do something with json
+end
 ```
 
 ## License
